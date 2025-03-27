@@ -22,13 +22,6 @@
     video::-webkit-media-controls-panel {
       width: calc(100% + 30px);
     }
-<head>
-  ...
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  ...
-</head>
-
   </style>
 </head>
 <body class="bg-gray-100">
@@ -76,10 +69,7 @@
     const validUser = { username: "admin", password: "123456" };
 
     async function loadVideos() {
-      const sources = [
-        "videos_all.json",
-        "videos_xuesheng.json"
-      ];
+      const sources = ["videos_all.json", "videos_xuesheng.json"];
       let all = [];
       for (const url of sources) {
         try {
@@ -131,67 +121,47 @@
       document.getElementById("totalPage").textContent = Math.ceil(filtered.length / videosPerPage);
     }
 
-function openVideoModal(videoUrl) {
-  if (!isLoggedIn) {
-    openLoginModal();
-    return;
-  }
+    function openVideoModal(videoUrl) {
+      if (!isLoggedIn) {
+        openLoginModal();
+        return;
+      }
 
-  const modal = document.getElementById("videoModal");
-  const player = document.getElementById("videoPlayer");
+      const modal = document.getElementById("videoModal");
+      const player = document.getElementById("videoPlayer");
 
-  // 清除之前的播放内容
-  if (player.hls) {
-    player.hls.destroy();
-    player.hls = null;
-  }
-  player.pause();
-  player.src = "";
+      // 清理旧播放器状态
+      if (player.hls) {
+        player.hls.destroy();
+        player.hls = null;
+      }
+      player.pause();
+      player.src = "";
 
-  // 判断是否为 .m3u8 地址
-  if (videoUrl.endsWith(".m3u8") && Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(videoUrl);
-    hls.attachMedia(player);
-    player.hls = hls;
-  } else {
-    player.src = videoUrl;
-  }
+      if (videoUrl.endsWith(".m3u8") && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(videoUrl);
+        hls.attachMedia(player);
+        player.hls = hls;
+      } else {
+        player.src = videoUrl;
+      }
 
-  modal.classList.remove("hidden");
-  setTimeout(() => player.play(), 100);
-}
+      modal.classList.remove("hidden");
+      setTimeout(() => player.play(), 100);
+    }
 
-
-  // 判断是否是 .m3u8 流地址
-  if (decodedUrl.endsWith(".m3u8") && Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(decodedUrl);
-    hls.attachMedia(player);
-    player.hls = hls;
-  } else {
-    player.src = decodedUrl;
-  }
-
-  modal.classList.remove("hidden");
-  setTimeout(() => player.play(), 100); // 延时播放（避免未加载好）
-}
-
-
-
-document.getElementById("closeModal").onclick = () => {
-  const modal = document.getElementById("videoModal");
-  const player = document.getElementById("videoPlayer");
-
-  if (player.hls) {
-    player.hls.destroy();
-    player.hls = null;
-  }
-  player.pause();
-  player.src = "";
-  modal.classList.add("hidden");
-};
-
+    document.getElementById("closeModal").onclick = () => {
+      const modal = document.getElementById("videoModal");
+      const player = document.getElementById("videoPlayer");
+      modal.classList.add("hidden");
+      player.pause();
+      player.src = "";
+      if (player.hls) {
+        player.hls.destroy();
+        player.hls = null;
+      }
+    };
 
     document.getElementById("prevPage").onclick = () => {
       if (currentPage > 1) {
@@ -237,7 +207,7 @@ document.getElementById("closeModal").onclick = () => {
       }
     };
 
-    // 防调试右键
+    // 禁用右键和开发者工具
     window.addEventListener("contextmenu", e => e.preventDefault());
     document.onkeydown = e => {
       if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))) {
