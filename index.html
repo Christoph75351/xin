@@ -131,9 +131,7 @@
       document.getElementById("totalPage").textContent = Math.ceil(filtered.length / videosPerPage);
     }
 
-function openVideoModal(encodedUrl) {
-  const decodedUrl = atob(encodedUrl); // 解码 Base64
-
+function openVideoModal(videoUrl) {
   if (!isLoggedIn) {
     openLoginModal();
     return;
@@ -142,13 +140,28 @@ function openVideoModal(encodedUrl) {
   const modal = document.getElementById("videoModal");
   const player = document.getElementById("videoPlayer");
 
-  // 先清空之前的播放内容
+  // 清除之前的播放内容
   if (player.hls) {
     player.hls.destroy();
     player.hls = null;
   }
   player.pause();
   player.src = "";
+
+  // 判断是否为 .m3u8 地址
+  if (videoUrl.endsWith(".m3u8") && Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(videoUrl);
+    hls.attachMedia(player);
+    player.hls = hls;
+  } else {
+    player.src = videoUrl;
+  }
+
+  modal.classList.remove("hidden");
+  setTimeout(() => player.play(), 100);
+}
+
 
   // 判断是否是 .m3u8 流地址
   if (decodedUrl.endsWith(".m3u8") && Hls.isSupported()) {
