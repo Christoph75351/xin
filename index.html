@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>视频网站</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     body {
       -webkit-user-select: none;
@@ -21,6 +22,13 @@
     video::-webkit-media-controls-panel {
       width: calc(100% + 30px);
     }
+<head>
+  ...
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  ...
+</head>
+
   </style>
 </head>
 <body class="bg-gray-100">
@@ -124,25 +132,53 @@
     }
 
 function openVideoModal(encodedUrl) {
-  const decodedUrl = atob(encodedUrl); // Base64 解码
+  const decodedUrl = atob(encodedUrl); // 解码 Base64
+
   if (!isLoggedIn) {
     openLoginModal();
     return;
   }
+
   const modal = document.getElementById("videoModal");
   const player = document.getElementById("videoPlayer");
-  player.src = decodedUrl;
+
+  // 先清空之前的播放内容
+  if (player.hls) {
+    player.hls.destroy();
+    player.hls = null;
+  }
+  player.pause();
+  player.src = "";
+
+  // 判断是否是 .m3u8 流地址
+  if (decodedUrl.endsWith(".m3u8") && Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(decodedUrl);
+    hls.attachMedia(player);
+    player.hls = hls;
+  } else {
+    player.src = decodedUrl;
+  }
+
   modal.classList.remove("hidden");
-  player.play(); // 确保自动播放
+  setTimeout(() => player.play(), 100); // 延时播放（避免未加载好）
 }
 
 
-    document.getElementById("closeModal").onclick = () => {
-      document.getElementById("videoModal").classList.add("hidden");
-      const player = document.getElementById("videoPlayer");
-      player.pause();
-      player.src = "";
-    };
+
+document.getElementById("closeModal").onclick = () => {
+  const modal = document.getElementById("videoModal");
+  const player = document.getElementById("videoPlayer");
+
+  if (player.hls) {
+    player.hls.destroy();
+    player.hls = null;
+  }
+  player.pause();
+  player.src = "";
+  modal.classList.add("hidden");
+};
+
 
     document.getElementById("prevPage").onclick = () => {
       if (currentPage > 1) {
